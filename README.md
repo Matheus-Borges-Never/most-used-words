@@ -20,5 +20,15 @@ yarn build
 yarn lint
 ```
 
+### Compile and reload electron
+```
+yarn electron:serve
+```
+
+### Node version
+```
+v16.20.2
+```
+
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
