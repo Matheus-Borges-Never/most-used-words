@@ -1779,6 +1779,17 @@ eval("module.exports = JSON.parse(\"{\\\"name\\\":\\\"most-used-words\\\",\\\"ti
 
 /***/ }),
 
+/***/ "./src/backend/groupWords.js":
+/*!***********************************!*\
+  !*** ./src/backend/groupWords.js ***!
+  \***********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("module.exports = (words) => {\r\n    //[A,A,B,B,A,C,E,D]\r\n    // {A:3, B:2, C:1, D:1, E:1}\r\n    return new Promise((resolve, reject) => {\r\n        try {\r\n            const groupedWords = words.reduce((obj, word) => {\r\n                if (obj[word]) {\r\n                    obj[word] = obj[word] + 1;\r\n                } else {\r\n                    obj[word] = 1;\r\n                }\r\n                return obj;\r\n            }, {});\r\n\r\n            const groupedWordsArray = Object.keys(groupedWords)\r\n                .map((key) => ({ word: key, amount: groupedWords[key] }))\r\n                .sort((w1, w2) => w2.amount - w1.amount);\r\n            resolve(groupedWordsArray);\r\n        } catch (e) {\r\n            reject(e);\r\n        }\r\n    });\r\n};\r\n\n\n//# sourceURL=webpack:///./src/backend/groupWords.js?");
+
+/***/ }),
+
 /***/ "./src/backend/index.js":
 /*!******************************!*\
   !*** ./src/backend/index.js ***!
@@ -1786,7 +1797,29 @@ eval("module.exports = JSON.parse(\"{\\\"name\\\":\\\"most-used-words\\\",\\\"ti
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("const { ipcMain } = __webpack_require__(/*! electron */ \"electron\")\r\n\r\nipcMain.on(\"blabla\", (event, dados) => {\r\n    console.log(dados)\r\n    event.reply(\"blabla\", \"respondido\")\r\n});\r\n\n\n//# sourceURL=webpack:///./src/backend/index.js?");
+eval("const { ipcMain } = __webpack_require__(/*! electron */ \"electron\")\r\nconst pathToRows = __webpack_require__(/*! ./pathsToRows */ \"./src/backend/pathsToRows.js\")\r\nconst prepareData = __webpack_require__(/*! ./prepareData */ \"./src/backend/prepareData.js\")\r\nconst groupWords = __webpack_require__(/*! ./groupWords */ \"./src/backend/groupWords.js\")\r\n\r\nipcMain.on(\"process-subtitles\", (event, paths) => {\r\n    pathToRows(paths)\r\n    .then(rows => prepareData(rows))\r\n    .then(preparedData=>groupWords(preparedData))\r\n    .then(groupedWords=>{\r\n        event.reply(\"process-subtitles\", groupedWords);\r\n    })\r\n});\r\n\n\n//# sourceURL=webpack:///./src/backend/index.js?");
+
+/***/ }),
+
+/***/ "./src/backend/pathsToRows.js":
+/*!************************************!*\
+  !*** ./src/backend/pathsToRows.js ***!
+  \************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+eval("const fs = __webpack_require__(/*! fs */ \"fs\");\r\n\r\nmodule.exports = (paths) => {\r\n  return new Promise((resolve, reject) => {\r\n    try {\r\n      const rows = paths\r\n        .map((path) => fs.readFileSync(path).toString(\"utf-8\"))\r\n        .reduce((fullText, fileText) => {\r\n          return `${fullText}\\n${fileText}`;\r\n        })\r\n        .split(\"\\n\");\r\n      resolve(rows);\r\n    } catch (e) {\r\n      reject(e);\r\n    }\r\n  });\r\n};\r\n\n\n//# sourceURL=webpack:///./src/backend/pathsToRows.js?");
+
+/***/ }),
+
+/***/ "./src/backend/prepareData.js":
+/*!************************************!*\
+  !*** ./src/backend/prepareData.js ***!
+  \************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("module.exports = (rows) => {\r\n    return new Promise((resolve, reject) => {\r\n        try{\r\n            const data = rows\r\n                .filter(filterValid)\r\n                .map(removePonctuation)\r\n                .map(removeTags)\r\n                .reduce(mergeRows)\r\n                .split(\" \")\r\n                .map(word=>word.toLowerCase())\r\n                .map(word=>word.replace(\"\\\"\", \"\"))\r\n            \r\n            resolve(data)\r\n        }catch(e){\r\n            reject(e)\r\n        }\r\n    });\r\n};\r\n\r\nfunction filterValid(row) {\r\n    const notNumber = !parseInt(row.trim());\r\n    const notEmpty = !!row.trim();\r\n    const notInterval = !row.includes(\"-->\");\r\n    return notNumber && notEmpty && notInterval;\r\n}\r\n\r\nfunction removePonctuation(row){\r\n    return row.replace(/[,?!:;.-]/g,\"\")\r\n}\r\n\r\nfunction removeTags(row){\r\n    return row.replace(/(<[^>]+)>/g,\"\").trim()\r\n}\r\n\r\nfunction mergeRows(fullText, rowText){\r\n    return `${fullText} ${rowText}`\r\n}\r\n\n\n//# sourceURL=webpack:///./src/backend/prepareData.js?");
 
 /***/ }),
 
