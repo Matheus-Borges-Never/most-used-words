@@ -1,6 +1,5 @@
 {
   "name": "most-used-words",
-  "title": "Most Used Words",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -14,12 +13,7 @@
   },
   "main": "background.js",
   "dependencies": {
-    "@mdi/font": "5.9.55",
-    "core-js": "^3.8.3",
-    "roboto-fontface": "*",
-    "vue": "^3.2.13",
-    "vuetify": "^3.0.0-beta.0",
-    "webfontloader": "^1.0.0"
+    "@mdi/font": "5.9.55"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
